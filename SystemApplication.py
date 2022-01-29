@@ -11,8 +11,6 @@ singleSession = singleton.SingleInstance()
 from specificKeyGUI import keyGUI
 from customTaskbarGUI import tbGUI
 
-
-
 specKeyRunning = False
 customTbRunning = False
 stop_thread = False
