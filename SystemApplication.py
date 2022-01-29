@@ -11,7 +11,7 @@ singleSession = singleton.SingleInstance()
 from specificKeyGUI import keyGUI
 from customTaskbarGUI import tbGUI
 
-# pyinstaller --onefile --windowed SystemApplication.py
+
 
 specKeyRunning = False
 customTbRunning = False
