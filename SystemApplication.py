@@ -73,7 +73,6 @@ def disableKey(systray):
         key.block_key(i)
 
 def enableKey(systray):
-    file = open("read.txt", "w")
     key.unhook_all()
 
 class threadManager():
