@@ -193,4 +193,4 @@ class tbGUI():
     def onLeave(self, event):
         self.hoverLabel.configure(text="")
     
-app = tbGUI()
+# app = tbGUI()
