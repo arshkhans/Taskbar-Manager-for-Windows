@@ -9,6 +9,8 @@ class tbGUI():
         self.pathData = []
         self.file = open("data/taskbarData.json", "r+")
         
+        data = json.load(self.file)
+        
         self.root = tkinter.Tk()
         self.root.title('App')
         self.root.resizable(False, False)
@@ -34,6 +36,7 @@ class tbGUI():
 
         desktopList = ["--None--"]
         
+        self.file.seek(0)
         data = json.load(self.file)
         for i in data.values():
             if i["Custom Name"] != "":
@@ -74,6 +77,8 @@ class tbGUI():
             
             for i in data[self.options.get()[8:]]["Pinned Apps"]:
                 self.Lb.insert(self.Lb.size()+1,i[1])
+            
+            self.pathData = data[self.options.get()[8:]]["Pinned Apps"]
 
             self.pathEntry = Entry(f2,textvariable = "none", font=('calibre',10,'normal'), width = 32)
             self.pathEntry.grid(row = 2, column = 0,pady = 9, padx = 12)
@@ -142,25 +147,41 @@ class tbGUI():
     
     def addApp(self):
         filePath = filedialog.askopenfilename()
-        if filePath:
+        if filePath and filePath.endswith(".exe"):
             temp = filePath[::-1]
             temp = temp[:temp.find("/")][::-1]
-            self.Lb.insert(self.Lb.size()+1,temp)
-            self.pathData.append([filePath,temp])
+            if self.pathData == []:
+                self.Lb.insert(self.Lb.size()+1,temp)
+                self.pathData.append([filePath,temp])
+            else:
+                if [filePath,temp] in self.pathData:
+                    messagebox.showinfo("Error", "Alredy Added")
+                else:
+                    self.Lb.insert(self.Lb.size()+1,temp)
+                    self.pathData.append([filePath,temp])
+        else:
+            messagebox.showinfo("Error", "Make sure the file exists and is a .exe file.")
 
     def removeApp(self,event):
         cs = self.Lb.curselection()
         self.Lb.configure(state=DISABLED)
         res = messagebox.askokcancel("Remove App \""+self.Lb.get(cs).strip()+"\"", "Are you sure?")
         self.Lb.configure(state=NORMAL)
+
+        remove = None
+        for index,i in enumerate(self.pathData):
+            if i[1] == self.Lb.get(cs):
+                remove = index
+        del self.pathData[remove]
+        print(self.pathData)
+        
         if res is True:
             self.Lb.delete(cs)
     
     def save(self):
         self.file.seek(0)
         data = json.load(self.file)
-        for i in self.pathData:
-            data[self.options.get()[8:]]["Pinned Apps"].append(i)
+        data[self.options.get()[8:]]["Pinned Apps"] = self.pathData
         self.file.seek(0)
         self.file.truncate()
         json.dump(data, self.file, indent=2, separators=(',', ':'))
@@ -172,4 +193,4 @@ class tbGUI():
     def onLeave(self, event):
         self.hoverLabel.configure(text="")
     
-# app = tbGUI()
+app = tbGUI()

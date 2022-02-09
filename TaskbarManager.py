@@ -55,6 +55,7 @@ def getCurrentDesktop():
         if os.path.isfile("syspin.exe") is False:
             ctypes.windll.user32.MessageBoxW(0, "Make sure \"syspin\" is downloaded and in the same folder!", "Error", 0)
             break
+        
         if str(currentDesktop) not in data:
             ctypes.windll.user32.MessageBoxW(0, "Current desktop not Configured", "Error", 0)
             break
@@ -62,10 +63,10 @@ def getCurrentDesktop():
         desktop = VirtualDesktop.current()
         currentDesktop = desktop.number
         if currentDesktop!=previousDesktop:
-            for app in data[str(previousDesktop)]["Pinned Apps"][0]:
-                subprocess_cmd('cd / & cd '+directory+'& syspin '+app+' "Unpin from taskbar" ')
-            for app in data[str(currentDesktop)]["Pinned Apps"][0]:
-                subprocess_cmd('cd / & cd '+directory+'& syspin '+app+' "Pin to taskbar" ')
+            for app in data[str(previousDesktop)]["Pinned Apps"]:
+                subprocess_cmd('cd / & cd '+directory+' & syspin "'+app[0].encode('unicode-escape').decode().replace('/', '\\')+'" "Unpin from taskbar" ')
+            for app in data[str(currentDesktop)]["Pinned Apps"]:
+                subprocess_cmd('cd / & cd '+directory+' & syspin "'+app[0].encode('unicode-escape').decode().replace('/', '\\')+'" "Pin to taskbar" ')
             previousDesktop = currentDesktop
 
 def disableKey(systray):
@@ -74,6 +75,7 @@ def disableKey(systray):
 
 def enableKey(systray):
     key.unhook_all()
+    
 
 class threadManager():
     def run(self,systray):
@@ -109,15 +111,15 @@ def quit(systray):
 
 thread = threadManager()
 
-menu_options = (("Keyboard","icon.ico",(("Enable Keyboard", "icon.ico", enableKey),
-                                        ("Disable Keyboard", "icon.ico", disableKey),
-                                        ("Disable Specific Key", "icon.ico", specKey)
+menu_options = (("Keyboard",None,(("Enable Keyboard", "icons/green_icon.ico", enableKey),
+                                        ("Disable Keyboard", "icons/red_icon.ico", disableKey),
+                                        ("Disable Specific Key", None, specKey)
                                         )),
-                ("Taskbar AutoPin","icon.ico",(("Enable", "icon.ico", thread.run),
-                                        ("Disable", "icon.ico", thread.stop),
-                                        ("Customize", "icon.ico", customTaskbar)
+                ("Taskbar AutoPin",None,(("Enable", "icons/green_icon.ico", thread.run),
+                                        ("Disable", "icons/red_icon.ico", thread.stop),
+                                        ("Customize", None, customTaskbar)
                                         ))
                 )
-systray = SysTrayIcon("icon.ico", "My App", menu_options, on_quit = quit)
+systray = SysTrayIcon("icons/main_icon.ico", "Taskbar Manager", menu_options, on_quit = quit)
 
 systray.start()
