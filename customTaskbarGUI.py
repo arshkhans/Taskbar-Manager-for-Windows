@@ -3,13 +3,41 @@ from tkinter import Frame, Listbox, Scrollbar, Button, Label, messagebox, filedi
 from tkinter import StringVar, OptionMenu, Spinbox, _setit, Entry
 from tkinter.constants import *
 import json
+import os
+import win32com.client 
 
 class tbGUI():
     def __init__(self):
+        
+        self.defaultApps = []
         self.pathData = []
         self.file = open("data/taskbarData.json", "r+")
         
+        pinnedPath = os.path.expanduser('~')\
+            +r"\AppData\Roaming\Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar"
+        
         data = json.load(self.file)
+        if os.path.isdir(pinnedPath):
+            apps = os.listdir(pinnedPath)
+            for i in apps:
+                if i.endswith(".lnk") and i !="File Explorer.lnk":
+                    shell = win32com.client.Dispatch("WScript.Shell")
+                    shortcut = shell.CreateShortCut(pinnedPath+"\\"+i)
+                    temp = shortcut.Targetpath[::-1]
+                    temp = temp[:temp.find("\\")][::-1]
+                    self.defaultApps.append([shortcut.Targetpath.replace("\\","/"),temp])
+                if i == "File Explorer.lnk":
+                    pathF = os.getcwd()+"\data"
+                    temp = pathF[::-1]
+                    temp = temp[:temp.find("\\")][::-1]
+                    self.defaultApps.append([pathF.replace("\\","/"),temp])
+            
+        if self.defaultApps != []:
+            data["0"]["Pinned Apps"] =  self.defaultApps
+            self.file.seek(0)
+            self.file.truncate()
+            json.dump(data, self.file, indent=2, separators=(',', ':'))
+            self.file.flush()
         
         self.root = tkinter.Tk()
         self.root.title('App')
@@ -61,6 +89,7 @@ class tbGUI():
         if self.options.get() == "--None--":
             messagebox.showinfo("Dumbass", "Select one first")
         else:
+            self.allDesktop.configure(state = DISABLED)
             self.file.seek(0)
             data = json.load(self.file)
             
@@ -83,7 +112,7 @@ class tbGUI():
             self.pathEntry = Entry(f2,textvariable = "none", font=('calibre',10,'normal'), width = 32)
             self.pathEntry.grid(row = 2, column = 0,pady = 9, padx = 12)
             
-            addPathBth = Button(f2, text = 'Enter', bd = '3', width = 6,command = self.addAppByPath)
+            addPathBth = Button(f2, text = 'Enter', bd = '3', width = 6,command = self.addAppByPath, state = DISABLED)
             addPathBth.grid(row = 2, column = 1)
             
             addBth = Button(f2, text = 'Browse', bd = '3', width = 6,command = self.addApp)
@@ -91,6 +120,9 @@ class tbGUI():
             
             testBth = Button(f2, text = 'Save', bd = '5', width = 6,command = self.save)
             testBth.grid(row = 3, column = 0, sticky=W)
+            
+            testBth = Button(f2, text = 'Cancel', bd = '5', width = 6,command = lambda: self.cancel(f2))
+            testBth.grid(row = 3, column = 1, sticky=E)
             
             deleteBtn = Button(f2, text = 'Delete Config', bd = '3',command = lambda: self.desktopRemove(f2))
             deleteBtn.grid(row = 4, column = 0)
@@ -121,6 +153,7 @@ class tbGUI():
             self.allDesktop['menu'].add_command(label=name, command = _setit(self.options, name))
     
     def desktopRemove(self,f2):
+        self.allDesktop.configure(state = NORMAL)
         f2.grid_forget()
         self.file.seek(0)
         data = json.load(self.file)
@@ -145,8 +178,9 @@ class tbGUI():
                 print(e)
         self.pathEntry.delete(0, 'end')
     
-    def addApp(self):
-        filePath = filedialog.askopenfilename()
+    def addApp(self,filePath = None):
+        if filePath is None:
+            filePath = filedialog.askopenfilename()
         if filePath and filePath.endswith(".exe"):
             temp = filePath[::-1]
             temp = temp[:temp.find("/")][::-1]
@@ -186,6 +220,10 @@ class tbGUI():
         self.file.truncate()
         json.dump(data, self.file, indent=2, separators=(',', ':'))
         self.file.flush()
+    
+    def cancel(self,f2):
+        self.allDesktop.configure(state = NORMAL)
+        f2.grid_forget()
         
     def onEnter(self, event):
         self.hoverLabel.configure(text="Double click on added desktop to Edit")

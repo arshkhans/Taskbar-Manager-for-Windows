@@ -4,6 +4,8 @@ test.py
 tkTest.py
 tooltip.py
 data
+driveAPI.py
+token.json
 *.py[cod]
 *$py.class
 

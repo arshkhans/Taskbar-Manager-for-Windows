@@ -24,8 +24,8 @@ if os.path.isdir("data") is False:
 
 initial = {
             0:  {
-                "Pinned Apps": [["",""],["",""]],
-                "Custom Name": "",
+                "Pinned Apps": [],
+                "Custom Name": "Default",
                 "Other":""
             }
         }
